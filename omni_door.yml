@@ -1,0 +1,69 @@
+esphome:
+  name: omni-door-sudo
+  platform: ESP32
+  board: esp32dev
+  on_boot:
+    then:
+      - output.turn_on: solenoid # output is inverted so we turn it off on boot
+
+# Enable logging
+logger:
+
+ota:
+  password: "shealing duarchy sorrowy welsium"
+
+wifi:
+  ssid: "Omni Commons"
+  password: ""
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Omni Door Sudo Fallback Hotspot"
+    password: "uFX3BfgUmtI9"
+
+spi:
+  clk_pin: 14
+  miso_pin: 12
+  mosi_pin: 13
+
+rc522_spi: # or rc522_i2c
+  cs_pin: 15
+  update_interval: 1s
+  on_tag:
+    then:
+      - homeassistant.tag_scanned: !lambda 'return x;'
+
+output:
+  - platform: ledc # use ledc component for PWM for solenoid
+    pin: 5
+    id: solenoid
+
+api:
+  password: "shealing duarchy sorrowy welsium"
+  services:
+    - service: unlock_door
+      then:
+        # First turn on at higher power for a short time
+        - output.turn_off: solenoid # output is inverted
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "0%" # percentages are inverted so 90% is 10%
+        - delay: 5ms
+    
+        # Now sustain at a lower power for a while
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "0%" # percentages are inverted so 90% is 10%
+        - delay: 3000ms
+        
+        # Then turn off
+        - output.turn_on: solenoid # output is inverted
+    
+
+captive_portal:
