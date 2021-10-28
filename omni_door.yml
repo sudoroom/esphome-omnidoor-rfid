@@ -4,7 +4,7 @@ esphome:
   board: esp32dev
   on_boot:
     then:
-      - output.turn_on: solenoid # output is inverted so we turn it off on boot
+      - output.turn_off: solenoid # output is inverted so we turn it off on boot
 
 # Enable logging
 logger:
@@ -27,7 +27,7 @@ spi:
   mosi_pin: 13
 
 rc522_spi: # or rc522_i2c
-  cs_pin: 15
+  cs_pin: 27
   update_interval: 1s
   on_tag:
     then:
@@ -44,13 +44,13 @@ api:
     - service: unlock_door
       then:
         # First turn on at higher power for a short time
-        - output.turn_off: solenoid # output is inverted
+        - output.turn_on: solenoid # output is inverted
         - output.ledc.set_frequency:
             id: solenoid
             frequency: "1000Hz"
         - output.set_level:
             id: solenoid
-            level: "0%" # percentages are inverted so 90% is 10%
+            level: "100%"
         - delay: 5ms
     
         # Now sustain at a lower power for a while
@@ -59,11 +59,11 @@ api:
             frequency: "1000Hz"
         - output.set_level:
             id: solenoid
-            level: "0%" # percentages are inverted so 90% is 10%
+            level: "100%"
         - delay: 3000ms
         
         # Then turn off
-        - output.turn_on: solenoid # output is inverted
+        - output.turn_off: solenoid # output is inverted
     
 
 captive_portal:
