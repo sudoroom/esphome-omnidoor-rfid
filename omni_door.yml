@@ -4,7 +4,7 @@ esphome:
   board: esp32dev
   on_boot:
     then:
-      - output.turn_off: solenoid # output is inverted so we turn it off on boot
+      - output.turn_off: solenoid
 
 # Enable logging
 logger:
@@ -55,7 +55,7 @@ binary_sensor:
             level: "100%"
         - delay: 4000ms
         # Then turn off
-        - output.turn_off: solenoid # output is inverted
+        - output.turn_off: solenoid
 
 output:
   - platform: ledc # use ledc component for PWM for solenoid
