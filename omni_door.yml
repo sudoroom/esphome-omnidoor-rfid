@@ -33,6 +33,30 @@ rc522_spi: # or rc522_i2c
     then:
       - homeassistant.tag_scanned: !lambda 'return x;'
 
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 15
+      mode:
+        input: true
+        pullup: true
+    name: "letmein"
+    filters:
+      - delayed_off: 10ms # debounce 10ms before registering false
+
+    on_release: # https://esphome.io/components/binary_sensor/index.html#binary-sensor-on-release
+      then:
+        - output.turn_on: solenoid
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "100%"
+        - delay: 4000ms
+        # Then turn off
+        - output.turn_off: solenoid # output is inverted
+
 output:
   - platform: ledc # use ledc component for PWM for solenoid
     pin: 5
