@@ -44,7 +44,7 @@ api:
     - service: unlock_door
       then:
         # First turn on at higher power for a short time
-        - output.turn_on: solenoid # output is inverted
+        - output.turn_on: solenoid
         - output.ledc.set_frequency:
             id: solenoid
             frequency: "1000Hz"
@@ -63,7 +63,7 @@ api:
         - delay: 3000ms
         
         # Then turn off
-        - output.turn_off: solenoid # output is inverted
+        - output.turn_off: solenoid
     
 
 captive_portal:
