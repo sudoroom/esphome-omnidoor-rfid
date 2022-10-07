@@ -2,7 +2,7 @@
 Config file for prototype ESPHome ESP32 device to control the ccl/sudo door in CCL using RFID.
 
 Beware that a password is contained in the yml file. You should change it before using this in production.
-
+                                                                ^^^^^ lol you mean so hackers don't get in? :)
 
 To compile and run first install [esphome](https://esphome.io/) (Python >= 3.7 required):
 
