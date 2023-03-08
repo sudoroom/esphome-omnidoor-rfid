@@ -1,0 +1,99 @@
+esphome:
+  name: omni-door-ethernet
+  platform: ESP32
+  board: esp32dev # https://registry.platformio.org/platforms/platformio/espressif32/boards
+  on_boot:
+    then:
+      - output.turn_off: solenoid
+
+# Enable logging
+logger:
+
+ota:
+  password: "shealing duarchy sorrowy welsium"
+
+#wifi: # Component ethernet cannot be used together with component wifi
+#  ssid: "Omni Commons"
+#  password: ""
+#
+#  # Enable fallback hotspot (captive portal) in case wifi connection fails
+#  ap:
+#    ssid: "Omni Door 23 Fallback Hotspot"
+#    password: "uFX3BfgUmtI9"
+#
+#captive_portal:
+
+ethernet: # https://github.com/Xinyuan-LilyGO/LilyGO-T-ETH-POE
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 0
+
+spi:
+  clk_pin: 14
+  miso_pin: 12
+  mosi_pin: 15
+
+rc522_spi: # or rc522_i2c
+  cs_pin: 32
+  update_interval: 1s
+  on_tag:
+    then:
+      - homeassistant.tag_scanned: !lambda 'return x;'
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 33
+      mode:
+        input: true
+        pullup: true
+    name: "letmein-ethernet"
+    filters:
+      - delayed_off: 10ms # debounce 10ms before registering false
+
+    on_release: # https://esphome.io/components/binary_sensor/index.html#binary-sensor-on-release
+      then:
+        - output.turn_on: solenoid
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "100%"
+        - delay: 4000ms
+        # Then turn off
+        - output.turn_off: solenoid
+
+output:
+  - platform: ledc # use ledc component for PWM for solenoid
+    pin: 4
+    id: solenoid
+
+api:
+  password: "shealing duarchy sorrowy welsium"
+  services:
+    - service: unlock_door
+      then:
+        # First turn on at higher power for a short time
+        - output.turn_on: solenoid
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "100%"
+        - delay: 5ms
+    
+        # Now sustain at a lower power for a while
+        - output.ledc.set_frequency:
+            id: solenoid
+            frequency: "1000Hz"
+        - output.set_level:
+            id: solenoid
+            level: "100%"
+        - delay: 3000ms
+        
+        # Then turn off
+        - output.turn_off: solenoid
